@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+import { Logo } from "@/components/brand/logo";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/app/components/authentication";
 import Loginbar from "@/app/components/loginbar";
@@ -16,20 +16,13 @@ export default function Navbar() {
     ];
 
     return (
-        <nav className="bg-white border-b shadow-sm dark:bg-black">
-            <div className="max-w-7xl mx-auto px-6 py-4 flex items-center gap-6">
-                <div className="flex gap-2 font-bold w-auto">
-                    <Image
-                        className="dark:invert"
-                        src="/next.svg"
-                        alt="Next.js logo"
-                        width={80}
-                        height={16}
-                        priority
-                    /> Template
-                </div>
+        <nav className="bg-card border-b">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-6">
+                <Link href="/" aria-label="Home" className="shrink-0">
+                    <Logo />
+                </Link>
 
-                <div className="flex gap-4">
+                <div className="hidden sm:flex gap-4">
                     {navLinks
                         .filter(({roles}) =>
                             !roles || user?.authorities?.some(
@@ -42,8 +35,8 @@ export default function Navbar() {
                                     href={href}
                                     className={
                                         active
-                                            ? "text-blue-600 font-medium border-b-2 border-blue-600 pb-1"
-                                            : "text-gray-600 hover:text-gray-900 transition"
+                                            ? "text-foreground font-medium border-b-2 border-primary pb-1"
+                                            : "text-muted-foreground hover:text-foreground transition"
                                     }
                                 >
                                     {label}
