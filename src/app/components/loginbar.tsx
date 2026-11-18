@@ -8,6 +8,7 @@ import { UsersService } from "@/api/userApi";
 import { deleteCookie } from "cookies-next";
 import { useAuth } from "@/app/components/authentication";
 import { Avatar } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser } from "@fortawesome/free-solid-svg-icons";
 
@@ -43,30 +44,29 @@ export default function Loginbar() {
 
     if (user) {
         return (
-            <div className="flex items-center gap-5">
+            <div className="flex items-center gap-3 sm:gap-5">
                 <div className="flex items-center gap-2">
-                    <Avatar className="rounded-lg flex items-center justify-center bg-gray-200">
+                    <Avatar className="rounded-lg flex items-center justify-center bg-muted">
                         <FontAwesomeIcon icon={faUser} className="h-4 w-4"/>
                     </Avatar>
                     <Link href={`/users/${user.username}`}
-                          className="text-blue-600 text-md font-medium"> {user.username ?? "User"} </Link>
+                          className="hidden sm:inline text-foreground text-md font-medium hover:underline"> {user.username ?? "User"} </Link>
                 </div>
-                <button
-                    onClick={logout}
-                    className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-                >
+                <Button variant="outline" size="sm" onClick={logout}>
                     Logout
-                </button>
+                </Button>
             </div>
         );
     }
 
     return (
         <div className="flex items-center gap-2">
-            <Link href="/login"
-                  className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"> Login </Link>
-            <Link href="/users/register"
-                  className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"> Register </Link>
+            <Button asChild variant="ghost" size="sm">
+                <Link href="/login">Login</Link>
+            </Button>
+            <Button asChild size="sm">
+                <Link href="/users/register">Register</Link>
+            </Button>
         </div>
     )
 
