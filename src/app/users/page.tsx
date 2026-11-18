@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {UsersService} from "@/api/userApi";
 import {serverAuthProvider} from "@/lib/authProvider";
+import {displayName, getUserId} from "@/types/user";
 
 export default async function UsersPage() {
     const service = new UsersService(serverAuthProvider)
@@ -17,13 +18,13 @@ export default async function UsersPage() {
                         key={i}
                         className="p-4 w-full border rounded-lg bg-white shadow-sm hover:shadow transition dark:bg-black"
                     >
-                        <Link className="font-medium" href={`/users/${user.username}`}>
-                            {user.username}
+                        <Link className="font-medium" href={`/users/${getUserId(user)}`}>
+                            {displayName(user)}
                         </Link>
 
-                        {user.email && (
-                            <div className="text-gray-600 text-sm">{user.email}</div>
-                        )}
+                        <div className="text-muted-foreground text-sm">
+                            {user.email} · {user.role} · {user.status}
+                        </div>
                     </li>
                 ))}
             </ul>

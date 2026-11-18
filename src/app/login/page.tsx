@@ -11,9 +11,10 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { UsersService } from "@/api/userApi";
 import { clientAuthProvider } from "@/lib/authProvider";
+import { getUserId, User } from "@/types/user";
 
 type FormValues = {
-    username: string;
+    email: string;
     password: string;
 };
 
@@ -23,9 +24,9 @@ export default function LoginPage() {
     const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>();
     const [ errorMessage, setErrorMessage ] = useState<string | null>(null);
 
-    async function login(username: string, password: string) {
+    async function login(email: string, password: string): Promise<User> {
         setErrorMessage(null);
-        const authorization = `Basic ${btoa(`${username}:${password}`)}`;
+        const authorization = `Basic ${btoa(`${email}:${password}`)}`;
         setCookie("MYAPP_AUTH", authorization, {
             path: "/",
             secure: true,
@@ -34,12 +35,15 @@ export default function LoginPage() {
         });
         const service = new UsersService(clientAuthProvider());
         const user = await service.getCurrentUser();
+        if (!user) throw new Error("Not authenticated");
         setUser(user);
+        return user;
     }
 
     const onSubmit: SubmitHandler<FormValues> = (data) => {
-        login(data.username, data.password).then(() => {
-            router.push(`/users/${data.username}`);
+        // Redirect by role comes in #16; for now go to the user's own page
+        login(data.email, data.password).then((user) => {
+            router.push(`/users/${getUserId(user)}`);
         }).catch(() => {
             deleteCookie("MYAPP_AUTH");
             setErrorMessage("Login failed");
@@ -60,13 +64,15 @@ export default function LoginPage() {
                                     <p className="text-sm text-red-600 mt-1">{errorMessage}</p>
                                 )}
                                 <div>
-                                    <Label htmlFor="username">Username</Label> {/* Changed htmlFor to username */}
+                                    <Label htmlFor="email">Email</Label>
                                     <Input
-                                        id="username"
-                                        {...register("username", { required: "Username is required" })}
+                                        id="email"
+                                        type="email"
+                                        autoComplete="username"
+                                        {...register("email", { required: "Email is required" })}
                                     />
-                                    {errors.username && (
-                                        <p className="text-sm text-red-600 mt-1">{errors.username.message}</p>
+                                    {errors.email && (
+                                        <p className="text-sm text-red-600 mt-1">{errors.email.message}</p>
                                     )}
                                 </div>
 
