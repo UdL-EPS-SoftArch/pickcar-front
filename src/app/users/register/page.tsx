@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -10,23 +10,54 @@ import { Button } from "@/components/ui/button";
 import { NewUser } from "@/types/user";
 import {UsersService} from "@/api/userApi";
 import {clientAuthProvider} from "@/lib/authProvider";
+import { isApiError } from "@/api/halClient";
 
 type FormValues = Required<Pick<NewUser, "email" | "password">> & { fullName: string };
+
+const FORM_FIELDS: (keyof FormValues)[] = ["fullName", "email", "password"];
+
+function isFormField(property: string): property is keyof FormValues {
+    return (FORM_FIELDS as string[]).includes(property);
+}
 
 export default function RegistrationPage() {
     const service = new UsersService(clientAuthProvider())
     const {
         register,
         handleSubmit,
+        setError,
         formState: { errors, isSubmitting },
     } = useForm<FormValues>();
+    const [formError, setFormError] = useState<string | null>(null);
 
     const router = useRouter();
 
-    const onSubmit: SubmitHandler<FormValues> = (data) => {
-        service.createUser(data).then(() => {
+    const onSubmit: SubmitHandler<FormValues> = async (data) => {
+        setFormError(null);
+        try {
+            await service.createUser(data);
             router.push("/login");
-        })
+        } catch (error) {
+            if (!isApiError(error)) {
+                setFormError("Could not reach the server. Try again later.");
+                return;
+            }
+            if (error.status === 409) {
+                // The only unique field on POST /users is the email
+                setError("email", { message: "An account with this email already exists" });
+                return;
+            }
+            let shownInField = false;
+            for (const [property, message] of Object.entries(error.fieldErrors ?? {})) {
+                if (isFormField(property)) {
+                    setError(property, { message });
+                    shownInField = true;
+                }
+            }
+            if (!shownInField) {
+                setFormError(error.message);
+            }
+        }
     };
 
     return (
@@ -46,6 +77,9 @@ export default function RegistrationPage() {
                                         autoComplete="name"
                                         {...register("fullName")}
                                     />
+                                    {errors.fullName && (
+                                        <p className="text-sm text-red-600 mt-1">{errors.fullName.message}</p>
+                                    )}
                                 </div>
 
                                 <div>
@@ -81,6 +115,10 @@ export default function RegistrationPage() {
                                         <p className="text-sm text-red-600 mt-1">{errors.password.message}</p>
                                     )}
                                 </div>
+
+                                {formError && (
+                                    <p role="alert" className="text-sm text-red-600">{formError}</p>
+                                )}
 
                                 <Button type="submit" className="mt-2" disabled={isSubmitting}>
                                     {isSubmitting ? "Registering..." : "Register"}

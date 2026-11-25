@@ -15,7 +15,8 @@ Guide AI agents to generate TypeScript entity types (`src/types/<entity>.ts`) an
    - Export `<Entity> = <Entity>Entity & Resource` from `halfred`.
 
 2. **HAL Client (`src/api/halClient.ts`)**:
-   - Always use `getHal` and `postHal` (and add `patchHal` / `deleteHal` in `halClient.ts` if PATCH/DELETE operations are required).
+   - Always use `getHal`, `postHal`, `patchHal`, `putHal`, `deleteHal` or `postMultipart`. Pass extra headers with the last `options` argument (`{ headers: { "X-Current-Password": ... } }`).
+   - Errors are thrown as `ApiError` (`status`, `message`, `fieldErrors`, `code`). Never put the request body in error messages or logs.
    - Wrap single resources with `mergeHal<T>(resource)` and `_embedded` arrays with `mergeHalArray<T>(embedded)` so returned objects expose both entity properties and Halfred `Resource` methods (`.link(rel)`, `.embeddedArray(rel)`).
 
 3. **Service Classes (`src/api/<entity>Api.ts`)**:

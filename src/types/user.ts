@@ -28,6 +28,9 @@ export type User = UserEntity & Resource;
 /** Fields accepted by POST /users */
 export type NewUser = Pick<UserEntity, "email" | "password" | "fullName" | "phone">;
 
+/** Profile fields a user can change with PATCH /users/{id} (password goes through changePassword) */
+export type UserProfileChanges = Partial<Pick<UserEntity, "fullName" | "phone">>;
+
 /** Numeric id used in /users/{id}, taken from the resource URI */
 export function getUserId(user: Pick<UserEntity, "uri"> | null | undefined): string | null {
     return idFromUri(user?.uri);
