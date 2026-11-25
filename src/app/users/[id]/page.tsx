@@ -8,7 +8,7 @@ import { UsersService } from "@/api/userApi";
 import { RecordService } from "@/api/recordApi";
 import { clientAuthProvider } from "@/lib/authProvider";
 import { Record } from "@/types/record";
-import { User } from "@/types/user";
+import { displayName, User } from "@/types/user";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -96,13 +96,17 @@ export default function UserDetailPage() {
                 className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-16 px-16 bg-white dark:bg-black sm:items-start">
                 <div className="flex flex-col items-center w-full gap-6 text-center sm:items-start sm:text-left">
                     <div className="space-y-4 w-full">
-                        <h1 className="text-2xl font-semibold">{user.username}</h1>
+                        <h1 className="text-2xl font-semibold">{displayName(user)}</h1>
 
-                        {user.email && (
-                            <p className="text-gray-700">
-                                <strong>Email:</strong> {user.email}
-                            </p>
-                        )}
+                        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+                            <dt className="font-medium">Email</dt>
+                            <dd>{user.email}</dd>
+                            {user.phone && (<><dt className="font-medium">Phone</dt><dd>{user.phone}</dd></>)}
+                            <dt className="font-medium">Role</dt>
+                            <dd>{user.role}</dd>
+                            <dt className="font-medium">Status</dt>
+                            <dd>{user.status}</dd>
+                        </dl>
 
                         {/* New Record Form */}
                         <Card className="w-full">

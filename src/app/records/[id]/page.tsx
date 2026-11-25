@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { serverAuthProvider } from "@/lib/authProvider";
 import { RecordService } from "@/api/recordApi";
 import { Record } from "@/types/record";
-import { User } from "@/types/user";
+import { displayName, getUserId, User } from "@/types/user";
 
 export default async function RecordPage(props: { params: Promise<{ id: string }> }) {
     const recordService = new RecordService(serverAuthProvider)
@@ -41,7 +41,7 @@ export default async function RecordPage(props: { params: Promise<{ id: string }
                                     {owner && (
                                         <>
                                             <p className="text-sm text-gray-500 mt-2">
-                                                <b>Owner</b>: <Link href={`/users/${owner.username}`} className="text-blue-600 hover:underline">{owner.username}</Link>
+                                                <b>Owner</b>: <Link href={`/users/${getUserId(owner)}`} className="hover:underline">{displayName(owner)}</Link>
                                             </p>
                                             {owner.email && (
                                                 <p className="text-sm text-gray-500">

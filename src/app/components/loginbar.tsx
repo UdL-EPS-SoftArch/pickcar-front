@@ -2,18 +2,18 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { clientAuthProvider } from "@/lib/authProvider";
-import { UsersService } from "@/api/userApi";
 import { deleteCookie } from "cookies-next";
 import { useAuth } from "@/app/components/authentication";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser } from "@fortawesome/free-solid-svg-icons";
+import { displayName, getUserId } from "@/types/user";
 
 export default function Loginbar() {
     const router = useRouter();
+    // The session is loaded once by AuthProvider
+    const { user, setUser, isLoading } = useAuth();
 
     function logout() {
         deleteCookie("MYAPP_AUTH");
@@ -21,26 +21,9 @@ export default function Loginbar() {
         router.push("/");
     }
 
-    const {user, setUser} = useAuth();
-
-    useEffect(() => {
-        let mounted = true;
-
-        async function load() {
-            try {
-                const service = new UsersService(clientAuthProvider());
-                const user = await service.getCurrentUser();
-                setUser(user ?? null);
-            } catch {
-                if (mounted) setUser(null);
-            }
-        }
-
-        load();
-        return () => {
-            mounted = false;
-        };
-    }, []);
+    if (isLoading) {
+        return <div className="h-8 w-32" aria-hidden="true" />;
+    }
 
     if (user) {
         return (
@@ -49,8 +32,11 @@ export default function Loginbar() {
                     <Avatar className="rounded-lg flex items-center justify-center bg-muted">
                         <FontAwesomeIcon icon={faUser} className="h-4 w-4"/>
                     </Avatar>
-                    <Link href={`/users/${user.username}`}
-                          className="hidden sm:inline text-foreground text-md font-medium hover:underline"> {user.username ?? "User"} </Link>
+                    <Link href={`/users/${getUserId(user)}`}
+                          data-testid="current-user"
+                          className="hidden sm:inline text-foreground text-md font-medium hover:underline">
+                        {displayName(user)}
+                    </Link>
                 </div>
                 <Button variant="outline" size="sm" onClick={logout}>
                     Logout

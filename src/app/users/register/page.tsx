@@ -7,15 +7,11 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { User } from "@/types/user";
+import { NewUser } from "@/types/user";
 import {UsersService} from "@/api/userApi";
 import {clientAuthProvider} from "@/lib/authProvider";
 
-type FormValues = {
-    username: string;
-    email: string;
-    password: string;
-};
+type FormValues = Required<Pick<NewUser, "email" | "password">> & { fullName: string };
 
 export default function RegistrationPage() {
     const service = new UsersService(clientAuthProvider())
@@ -28,7 +24,7 @@ export default function RegistrationPage() {
     const router = useRouter();
 
     const onSubmit: SubmitHandler<FormValues> = (data) => {
-        service.createUser(data as User).then(() => {
+        service.createUser(data).then(() => {
             router.push("/login");
         })
     };
@@ -44,14 +40,12 @@ export default function RegistrationPage() {
                         <CardContent>
                             <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
                                 <div>
-                                    <Label htmlFor="name">Name</Label>
+                                    <Label htmlFor="fullName">Full name</Label>
                                     <Input
-                                        id="username"
-                                        {...register("username", { required: "Username is required" })}
+                                        id="fullName"
+                                        autoComplete="name"
+                                        {...register("fullName")}
                                     />
-                                    {errors.username && (
-                                        <p className="text-sm text-red-600 mt-1">{errors.username.message}</p>
-                                    )}
                                 </div>
 
                                 <div>
@@ -79,7 +73,7 @@ export default function RegistrationPage() {
                                         type="password"
                                         {...register("password", {
                                             required: "Password is required",
-                                            minLength: { value: 6, message: "Minimum 8 characters" },
+                                            minLength: { value: 8, message: "Minimum 8 characters" },
                                             maxLength: { value: 256, message: "Maximum 256 characters" }
                                         })}
                                     />

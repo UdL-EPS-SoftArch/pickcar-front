@@ -5,14 +5,16 @@ import { Logo } from "@/components/brand/logo";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/app/components/authentication";
 import Loginbar from "@/app/components/loginbar";
+import { Role } from "@/types/user";
 
 export default function Navbar() {
     const pathname = usePathname();
-    const {user} = useAuth();
+    const {role} = useAuth();
 
-    const navLinks = [
+    // Links without roles are public; role-specific navigation comes in #3
+    const navLinks: { href: string; label: string; roles?: Role[] }[] = [
         {href: "/", label: "Home"},
-        {href: "/users", label: "Users", roles: ["ROLE_USER"]}
+        {href: "/users", label: "Users", roles: ["ADMIN"]}
     ];
 
     return (
@@ -24,9 +26,7 @@ export default function Navbar() {
 
                 <div className="hidden sm:flex gap-4">
                     {navLinks
-                        .filter(({roles}) =>
-                            !roles || user?.authorities?.some(
-                                userAuth => roles.includes(userAuth.authority)))
+                        .filter(({roles}) => !roles || (role !== null && roles.includes(role)))
                         .map(({href, label}) => {
                             const active = pathname === href;
                             return (
