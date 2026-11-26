@@ -7,8 +7,8 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { UsersService } from "@/api/userApi";
 import { RecordService } from "@/api/recordApi";
 import { clientAuthProvider } from "@/lib/authProvider";
-import { Record } from "@/types/record";
-import { displayName, User } from "@/types/user";
+import { Record, RecordStatus } from "@/types/record";
+import { User } from "@/types/user";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 type FormValues = {
     name: string;
     description: string;
+    status: RecordStatus;
 };
 
 export default function UserDetailPage() {
@@ -26,6 +27,9 @@ export default function UserDetailPage() {
 
     const [user, setUser] = useState<User | null>(null);
     const [records, setRecords] = useState<Record[]>([]);
+    const [page, setPage] = useState(0);
+    const [reloadCount, setReloadCount] = useState(0);
+    const [pagination, setPagination] = useState({totalPages: 1, hasPrevious: false, hasNext: false});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -34,20 +38,15 @@ export default function UserDetailPage() {
         handleSubmit,
         formState: { errors, isSubmitting },
         reset,
-    } = useForm<FormValues>();
+    } = useForm<FormValues>({ defaultValues: { status: "PRIVATE" } });
 
     useEffect(() => {
-        async function fetchData() {
+        async function fetchUser() {
             setLoading(true);
             setError(null);
             try {
-                const authProvider = clientAuthProvider();
-                const userService = new UsersService(authProvider);
-                const recordService = new RecordService(authProvider);
-                const userData = await userService.getUserById(userId);
-                setUser(userData);
-                const recordsData = await recordService.getRecordsByOwnedBy(userData);
-                setRecords(recordsData);
+                const userService = new UsersService(clientAuthProvider());
+                setUser(await userService.getUserById(userId));
             } catch (err) {
                 console.error(err);
                 setError("Failed to load user data.");
@@ -55,18 +54,41 @@ export default function UserDetailPage() {
                 setLoading(false);
             }
         }
-        fetchData();
+        fetchUser();
     }, [userId]);
+
+    useEffect(() => {
+        if (!user) return;
+        const owner = user;
+        async function fetchRecords() {
+            try {
+                const recordService = new RecordService(clientAuthProvider());
+                const data = await recordService.getRecordsByOwnedBy(owner, page);
+                setRecords(data.records);
+                setPagination({
+                    totalPages: data.totalPages,
+                    hasPrevious: data.hasPrevious,
+                    hasNext: data.hasNext,
+                });
+            } catch (err) {
+                console.error(err);
+                setError("Failed to load records.");
+            }
+        }
+        fetchRecords();
+    }, [user, page, reloadCount]);
 
     const onSubmit: SubmitHandler<FormValues> = async (data) => {
         try {
             const authProvider = clientAuthProvider();
             const recordService = new RecordService(authProvider);
-            const newRecord = await recordService.createRecord({
+            await recordService.createRecord({
                 name: data.name,
                 description: data.description || undefined,
+                status: data.status,
             } as Record);
-            setRecords((prev) => [...prev, newRecord]);
+            setPage(0);
+            setReloadCount((count) => count + 1);
             reset();
         } catch (err) {
             console.error(err);
@@ -134,6 +156,18 @@ export default function UserDetailPage() {
                                         />
                                     </div>
 
+                                    <div>
+                                        <Label htmlFor="status">Status</Label>
+                                        <select
+                                            id="status"
+                                            {...register("status")}
+                                            className="flex h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                                        >
+                                            <option value="PRIVATE">Private</option>
+                                            <option value="PUBLIC">Public</option>
+                                        </select>
+                                    </div>
+
                                     <Button type="submit" disabled={isSubmitting}>
                                         {isSubmitting ? "Creating..." : "Add Record"}
                                     </Button>
@@ -151,8 +185,8 @@ export default function UserDetailPage() {
                             <p className="text-sm text-muted-foreground">No records created by the user yet.</p>
                         ) : (
                             <div className="space-y-3 w-full">
-                                {records.map((record, i) => (
-                                    <Card key={i} className="w-full">
+                                {records.map((record) => (
+                                    <Card key={record.uri} className="w-full">
                                         <CardHeader>
                                             <CardTitle>
                                                 <Link href={record.uri} className="hover:underline">
@@ -164,11 +198,32 @@ export default function UserDetailPage() {
                                                     {record.description}
                                                 </p>
                                             )}
+                                            <p className="text-sm text-muted-foreground mt-1">
+                                                Status: {record.status}
+                                            </p>
                                         </CardHeader>
                                     </Card>
                                 ))}
                             </div>
                         )}
+
+                        <div className="flex items-center gap-4">
+                            {pagination.hasPrevious && (
+                                <Button type="button" variant="outline" size="sm"
+                                        onClick={() => setPage((current) => current - 1)}>
+                                    Previous
+                                </Button>
+                            )}
+                            <span className="text-sm text-muted-foreground">
+                                Page {page + 1} of {pagination.totalPages}
+                            </span>
+                            {pagination.hasNext && (
+                                <Button type="button" variant="outline" size="sm"
+                                        onClick={() => setPage((current) => current + 1)}>
+                                    Next
+                                </Button>
+                            )}
+                        </div>
 
                     </div>
                 </div>
