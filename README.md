@@ -1,4 +1,9 @@
 
+[![Open Issues](https://img.shields.io/github/issues-raw/UdL-EPS-SoftArch/react-template?logo=github)](https://github.com/UdL-EPS-SoftArch/react-template/issues)
+[![CI/CD](https://github.com/UdL-EPS-SoftArch/react-template/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/UdL-EPS-SoftArch/react-template/actions)
+[![Cucumber Reports](https://img.shields.io/badge/cucumber-reports-brightgreen)](https://UdL-EPS-SoftArch.github.io/react-template/reports/results.html)
+[![Deployment status](https://img.shields.io/github/deployments/UdL-EPS-SoftArch/react-template/github-pages?label=deployment)](https://react-template-sage.vercel.app)
+
 # PickCar — Frontend
  
 Next.js (App Router) client for **PickCar**, a car rental platform with three roles: **Driver**, **Company** and **Admin**. It consumes the PickCar Spring Data REST (HAL+JSON) backend, built from the [`spring-template`](https://github.com/UdL-EPS-SoftArch/spring-template), and uses shadcn/ui, `react-hook-form`, and Cucumber + Playwright E2E BDD testing.

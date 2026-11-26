@@ -28,6 +28,9 @@ export default async function RecordPage(props: { params: Promise<{ id: string }
 
                                 </CardHeader>
                                 <CardContent>
+                                    <p className="text-sm text-gray-500 mt-2">
+                                        <b>Status</b>: {record.status}
+                                    </p>
                                     {record.created && (
                                         <p className="text-sm text-gray-500">
                                             <b>Created</b>: {new Date(record.created).toLocaleString()}
